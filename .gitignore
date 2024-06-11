@@ -1,2 +1,7 @@
+# cathe
 __pycache__/
+# test data
+csv/
 *.csv
+# env.
+.venv/
