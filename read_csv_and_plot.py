@@ -44,7 +44,7 @@ def read_and_plot_csv(file_path):
     total_time_elapsed = df['Timestamp'].iloc[-1] - df['Timestamp'].iloc[0]
     df['Total Time'] = (df['Timestamp'] - df['Timestamp'].iloc[0]).dt.total_seconds() / 3600
     plt.figure(figsize=(10, 6))
-    plt.plot(df['Total Time'], df['Current'], label='Current')
+    plt.plot(df['Total Time'], df['Voltage'], label='Current')
     
     plt.xlabel('Total Time (hr)')
     plt.ylabel('Current (V)')
@@ -59,17 +59,17 @@ def read_and_plot_csv(file_path):
 
 # 指定你的目錄
 # 指定你的目錄
-charge_voltage_csv_path = "C:/Users/zx511/hello/csv/channel_101_charge"
-discharge_voltage_csv_path = "C:/Users/zx511/hello/csv/channel_101_discharge"
-charge_current_csv_path = "C:/Users/zx511/hello/csv/channel_111_charge"
-discharge_current_csv_path = "C:/Users/zx511/hello/csv/channel_111_discharge"
+charge_voltage_csv_path = "C:/Users/Acer/battery_test_project/csv/channel_101_charge"
+discharge_voltage_csv_path = "C:/Users/Acer/battery_test_project/csv/channel_101_discharge"
+charge_current_csv_path = "C:/Users/Acer/battery_test_project/csv/channel_111_charge"
+discharge_current_csv_path = "C:/Users/Acer/battery_test_project/csv/channel_111_discharge"
 
 # 獲取最新的 CSV 檔案
-charge_voltage_latest_file = get_latest_csv_file(charge_voltage_csv_path)
-#discharge_voltage_latest_file = get_latest_csv_file(discharge_voltage_csv_path)
-charge_current_latest_file = get_latest_csv_file(charge_current_csv_path)
-#discharge_current_latest_file = get_latest_csv_file(discharge_current_csv_path)
-print(f"Latest CSV file: {charge_current_latest_file}")
+#charge_voltage_latest_file = get_latest_csv_file(charge_voltage_csv_path)
+discharge_voltage_latest_file = get_latest_csv_file(discharge_voltage_csv_path)
+#charge_current_latest_file = get_latest_csv_file(charge_current_csv_path)
+discharge_current_latest_file = get_latest_csv_file(discharge_current_csv_path)
+print(f"Latest CSV file: {discharge_voltage_latest_file}")
 
 # 讀取最新的 CSV 檔案並繪製數據
-read_and_plot_csv(charge_current_latest_file)
+read_and_plot_csv(discharge_voltage_latest_file)
