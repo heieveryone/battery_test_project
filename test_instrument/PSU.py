@@ -10,7 +10,7 @@ output_state = DVP_12SE.Y0_output(b':01050500FF00F6\r\n')
 PSU_output = PDS20_36A.output(1)
 time.sleep(5)
 
-volt, curr = PDS20_36A.output_Set(5, 0.1)
+volt, curr = PDS20_36A.output_Set(4.2, 0.1)
 time.sleep(5)
 PSU_output = PDS20_36A.output(0)
 time.sleep(1)
