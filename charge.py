@@ -15,7 +15,7 @@ charge_CC_current_upper = cell_Ah
 charge_CC_current_lower = cell_Ah - 0.003
 charge_CV_cutoff_current = 0.004
 column_name = "Total_time"
-DVP_12SE = instrument.DVP_PLC('COM3', '12SE')
+DVP_12SE = instrument.DVP_PLC('COM4', '12SE')
 time.sleep(1) #要確保rs232命令被發出
 M1183_state = DVP_12SE.M1183_output(b':01050C9F00004F\r\n')
 output_state = DVP_12SE.Y0_output(b':01050500FF00F6\r\n')
@@ -28,7 +28,7 @@ DAQ_970a.channel_scan_config("(@101, 111)", 1, 0.035)
 time.sleep(1)
 
 
-PDS20_36A = instrument.power_supply("ASRL5::INSTR", "PDS20")
+PDS20_36A = instrument.power_supply("ASRL3::INSTR", "PDS20")
 volt, curr = PDS20_36A.output_Set(8.4, 2)
 
 time.sleep(5)
@@ -56,7 +56,7 @@ if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':0105050
             volt, curr = PDS20_36A.output_Set(4.2, 0.01)
             print("CV mode")
         """
-        if volt == 8.4 and 8.37 <= df_101['Voltage'].iloc[-1] <= 8.4:
+        if 8.395 <= df_101['Voltage'].iloc[-1] <= 8.402 and df_111['Current'].iloc[-1] <= 0.05:
             PSU_output = PDS20_36A.output(0)
             time.sleep(1)
             DAQ_970a.scan_stop()
@@ -80,7 +80,7 @@ df_111[column_name] = None
 df_111.iat[0, df_111.columns.get_loc(column_name)] = total_time_elapsed
 print(df_101)
 print(df_111)
-instrument.save_dataframe_to_csv_with_incremented_filename(df_101, "C:/Users/zx511/hello/csv/channel_101_charge")
-instrument.save_dataframe_to_csv_with_incremented_filename(df_111, "C:/Users/zx511/hello/csv/channel_111_charge")
+instrument.save_dataframe_to_csv_with_incremented_filename(df_101, "C:/Users/Acer/battery_test_project/csv/channel_101_charge")
+instrument.save_dataframe_to_csv_with_incremented_filename(df_111, "C:/Users/Acer/battery_test_project/csv/channel_111_charge")
 #save_dataframe_to_csv_with_incremented_filename(PLC_voltage, "C:/Users/zx511/hello/csv/PLC_data")
 
