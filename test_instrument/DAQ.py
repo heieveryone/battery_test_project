@@ -14,7 +14,7 @@ time.sleep(1) #要確保rs232命令被發出
 output_state = DVP_12SE.Y0_output(b':01050500FF00F6\r\n')
 PSU_output = PDS20_36A.output(1)
 print(DAQ_970a.scan_start())
-time.sleep(5)
+time.sleep(10)
 DAQ_970a.scan_stop()
 time.sleep(0.1)
 PSU_output = PDS20_36A.output(0)
