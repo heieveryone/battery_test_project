@@ -12,10 +12,10 @@ column_name_Capacity = "Capacity"
 
 Rigol_load = instrument.dc_electronic_load('USB0::0x1AB1::0x0E11::DL3A260500107::INSTR', 'DL3021')
 Rigol_load.static_function('CURR')
-curr = Rigol_load.static_CC_mode_curr_set(2)
+curr = Rigol_load.static_CC_mode_curr_set(2.8)
 time.sleep(1)
 
-DVP_12SE = instrument.DVP_PLC('COM3', '12SE')
+DVP_12SE = instrument.DVP_PLC('COM4', '12SE')
 time.sleep(1) #要確保rs232命令被發出
 M1183_state = DVP_12SE.M1183_output(b':01050C9F00004F\r\n')
 output_state = DVP_12SE.Y0_output(b':010505000000F5\r\n')
@@ -47,7 +47,7 @@ if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':0105050
         df_111 = pd.concat([df_111, new_df_111], ignore_index=True)
         print(df_101)
         #print(df_101)
-        if 7.7 <= df_101['Voltage'].iloc[-1] < 7.79:
+        if 7.6 <= df_101['Voltage'].iloc[-1] < 7.65:
             E_load_input = Rigol_load.input(0)
             print("cut off voltage")
             time.sleep(0.1)
@@ -72,5 +72,5 @@ df_111.iat[0, df_111.columns.get_loc(column_name_Capacity)] = discharge_Capacity
 print(df_101)
 print(df_111)
 #df_111['discharge_Capacity'] = discharge_Capacity
-instrument.save_dataframe_to_csv_with_incremented_filename(df_101, "C:/Users/zx511/hello/csv/channel_101_discharge")
-instrument.save_dataframe_to_csv_with_incremented_filename(df_111, "C:/Users/zx511/hello/csv/channel_111_discharge")
+instrument.save_dataframe_to_csv_with_incremented_filename(df_101, "C:/Users/Acer/battery_test_project/csv/channel_101_discharge")
+instrument.save_dataframe_to_csv_with_incremented_filename(df_111, "C:/Users/Acer/battery_test_project/csv/channel_111_discharge")
