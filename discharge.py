@@ -12,13 +12,15 @@ column_name_Capacity = "Capacity"
 
 Rigol_load = instrument.dc_electronic_load('USB0::0x1AB1::0x0E11::DL3A260500107::INSTR', 'DL3021')
 Rigol_load.static_function('CURR')
-curr = Rigol_load.static_CC_mode_curr_set(2)
+range = Rigol_load.static_CC_mode_curr_range(40)
+curr = Rigol_load.static_CC_mode_curr_set(15.6)
 time.sleep(1)
 
-DVP_12SE = instrument.DVP_PLC('COM3', '12SE')
+DVP_12SE = instrument.DVP_PLC('COM4', '12SE')
 time.sleep(1) #要確保rs232命令被發出
 M1183_state = DVP_12SE.M1183_output(b':01050C9F00004F\r\n')
 output_state = DVP_12SE.Y0_output(b':010505000000F5\r\n')
+print(M1183_state, output_state)
 time.sleep(1)
 
 DAQ_970a = instrument.DAQ("USB0::0x2A8D::0x5101::MY58017225::0::INSTR", "970a")
@@ -45,14 +47,19 @@ if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':0105050
         #print(new_df_101, type(new_df_101))
         df_101 = pd.concat([df_101, new_df_101], ignore_index=True)
         df_111 = pd.concat([df_111, new_df_111], ignore_index=True)
-        print(df_101)
-        #print(df_101)
-        if 7.7 <= df_101['Voltage'].iloc[-1] < 7.79:
-            E_load_input = Rigol_load.input(0)
-            print("cut off voltage")
-            time.sleep(0.1)
-            DAQ_970a.scan_stop()
-            break
+        if len(df_101) >= 5 and len(df_111) >= 5:
+            voltage_average = df_101['Voltage'].rolling(window = 5).mean().round(4)
+            current_average = df_111['Current'].rolling(window = 5).mean().round(4)
+            # Ensure you are accessing the most recent values
+            recent_voltage_avg = voltage_average.iloc[-1]
+            recent_current_avg = current_average.iloc[-1]
+            print(recent_current_avg, recent_voltage_avg)
+            if 3.59 <= recent_voltage_avg < 3.601:
+                DAQ_970a.scan_stop()
+                time.sleep(0.05)
+                E_load_input = Rigol_load.input(0)
+                print("cut off voltage")
+                break
 elif M1183_state != str(b':01050C9F00004F\r\n') or output_state != str(b':010505000000F5\r\n'):
     print("fail to turn on")
 
@@ -65,18 +72,27 @@ total_time_elapsed = df_111['Timestamp'].iloc[-1] - df_111['Timestamp'].iloc[0]
 # 計算每個 Timestamp 與第一個 Timestamp 的時間差（以小時為單位）
 total_hours = (df_111['Timestamp'].iloc[-1] - df_111['Timestamp'].iloc[0]).total_seconds() / 3600
 discharge_Capacity = curr * total_hours
+"""
 # 計算相鄰電壓和電流的差
-delta_voltage = df_101['voltage'].diff().iloc[1:]
-delta_current = df_101['current'].diff().iloc[1:]
+delta_voltage = df_101['Voltage'].diff().iloc[1:]
+delta_current = df_111['Current'].diff().iloc[1:]
 # 計算電阻值
 resistance = delta_voltage / delta_current
-df_111[resistance] = resistance
+df_resistance = pd.DataFrame({
+    'Timestamp': df_101['Timestamp'],
+    'Voltage': df_101['Voltage'],
+    'Current': df_111['Current'],
+    'Resistance': resistance
+})
+"""
 df_111[column_name_Time] = None
 df_111.iat[0, df_111.columns.get_loc(column_name_Time)] = total_time_elapsed
 df_111[column_name_Capacity] = None
 df_111.iat[0, df_111.columns.get_loc(column_name_Capacity)] = discharge_Capacity
 print(df_101)
 print(df_111)
+#print(df_resistance)
 #df_111['discharge_Capacity'] = discharge_Capacity
-instrument.save_dataframe_to_csv_with_incremented_filename(df_101, "C:/Users/zx511/hello/csv/channel_101_discharge")
-instrument.save_dataframe_to_csv_with_incremented_filename(df_111, "C:/Users/zx511/hello/csv/channel_111_discharge")
+instrument.save_dataframe_to_csv_with_incremented_filename(df_101, "C:/Users/Acer/battery_test_project/csv/channel_101_discharge")
+instrument.save_dataframe_to_csv_with_incremented_filename(df_111, "C:/Users/Acer/battery_test_project/csv/channel_111_discharge")
+#instrument.save_dataframe_to_csv_with_incremented_filename(df_resistance, "C:/Users/Acer/battery_test_project/csv/discharge_resistance")

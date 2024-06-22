@@ -52,6 +52,12 @@ class dc_electronic_load:
             self.name.query(f":SOUR:FUNC {name}")
         except pyvisa.errors.VisaIOError:
             self.name.write("*CLS")
+    def static_CC_mode_curr_range(self, curr):
+        try:
+            self.name.query(f":SOUR:CURR:RANG {curr}")
+        except pyvisa.errors.VisaIOError:
+            self.name.write("*CLS")
+        return curr
     #靜態操作CC模式電流數值設定
     def static_CC_mode_curr_set(self, curr):
         try:
