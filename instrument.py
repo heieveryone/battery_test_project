@@ -65,6 +65,60 @@ class dc_electronic_load:
         except pyvisa.errors.VisaIOError:
             self.name.write("*CLS")
         return num
+    #觸發，使用BUS當作觸發源，要發送這指令觸發
+    def trigger(self):
+        try:
+            self.name.query(":TRIGger")
+        except pyvisa.errors.VisaIOError:
+            self.name.write("*CLS")
+    #觸發源模式，BUS:remote trigger command；EXTernal:digital I/O；MANUal:TRAN key在前面板
+    def trigger_source(self, source):
+        try:
+            self.name.query(f":TRIGger:SOURce {source}")
+        except pyvisa.errors.VisaIOError:
+            self.name.write("*CLS")
+    #list功能的模式，CC、CV、CR、CP
+    def list_mode(self, mode):
+        try:
+            self.name.query(f":SOUR:LIST:MODE {mode}")
+        except pyvisa.errors.VisaIOError:
+            self.name.write("*CLS")
+    #list輸出範圍，CC有6、60A
+    def list_range(self, range):
+        try:
+            self.name.query(f":SOUR:LIST:RANG {range}")
+        except pyvisa.errors.VisaIOError:
+            self.name.write("*CLS")
+    #list循環次數，0~99999，0代表無限
+    def list_count(self, num):
+        try:
+            self.name.query(f":SOUR:LIST:COUN {num}")
+        except pyvisa.errors.VisaIOError:
+            self.name.write("*CLS")
+    #list的步驟數，從0開始算
+    def list_step(self, num):
+        try:
+            self.name.query(f":SOUR:LIST:STEP {num}")
+        except pyvisa.errors.VisaIOError:
+            self.name.write("*CLS")
+    #list步驟的數值設定，從0開始算
+    def list_level(self, step, value):
+        try:
+            self.name.query(f":SOUR:LIST:LEV {step},{value}")
+        except pyvisa.errors.VisaIOError:
+            self.name.write("*CLS")
+    #list步驟的時間長度，從0.00005~3600s
+    def list_width(self, step, value):
+        try:
+            self.name.query(f":SOUR:LIST:WID {step},{value}")
+        except pyvisa.errors.VisaIOError:
+            self.name.write("*CLS")
+    #list，CC模式的電流斜率
+    def list_CC_slew(self, step, value):
+        try:
+            self.name.query(f":SOUR:LIST:SLEW {step},{value}")
+        except pyvisa.errors.VisaIOError:
+            self.name.write("*CLS")
 class DVP_PLC:
     #初始設置序列通訊
     def __init__(self, resource, name):
@@ -208,3 +262,4 @@ class DAQ:
 rm = pyvisa.ResourceManager()
 print(rm.list_resources()) #列出可用資源
 print(rm) #輸出Visa庫在電腦的位置
+print("垃圾專題")
