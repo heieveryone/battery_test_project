@@ -8,7 +8,7 @@ column_name_Capacity = "Capacity"
 Rigol_load = instrument.dc_electronic_load('USB0::0x1AB1::0x0E11::DL3A260500107::INSTR', 'DL3021')
 Rigol_load.trigger_source("BUS")
 Rigol_load.list_mode("CC")
-Rigol_load.list_range(60)
+Rigol_load.list_range(40)
 Rigol_load.list_count(0)
 Rigol_load.list_step(1)
 Rigol_load.list_level(0, 10.4)
@@ -16,6 +16,7 @@ Rigol_load.list_level(1, 0)
 Rigol_load.list_width(0, 10)
 Rigol_load.list_width(1, 300)
 Rigol_load.list_CC_slew(0, 0.1)
+Rigol_load.list_CC_slew(1, 0.001)
 time.sleep(1)
 
 DVP_12SE = instrument.DVP_PLC('COM4', '12SE')
@@ -55,7 +56,7 @@ if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':0105050
             recent_voltage_avg = voltage_average.iloc[-1]
             recent_current_avg = current_average.iloc[-1]
             print(recent_current_avg, recent_voltage_avg)
-            if 3.59 <= recent_voltage_avg < 3.601:
+            if recent_current_avg < 0.1 and 3.8 <= recent_voltage_avg < 3.9:
                 DAQ_970a.scan_stop()
                 time.sleep(0.05)
                 E_load_input = Rigol_load.input(0)
@@ -74,3 +75,11 @@ total_time_elapsed = df_111['Timestamp'].iloc[-1] - df_111['Timestamp'].iloc[0]
 total_hours = (df_111['Timestamp'].iloc[-1] - df_111['Timestamp'].iloc[0]).total_seconds() / 3600
 #discharge_Capacity = curr * total_hours
 
+df_111[column_name_Time] = None
+df_111.iat[0, df_111.columns.get_loc(column_name_Time)] = total_time_elapsed
+print(df_101)
+print(df_111)
+#print(df_resistance)
+#df_111['discharge_Capacity'] = discharge_Capacity
+instrument.save_dataframe_to_csv_with_incremented_filename(df_101, "C:/Users/Acer/battery_test_project/csv/channel_101_pulse_discharge")
+instrument.save_dataframe_to_csv_with_incremented_filename(df_111, "C:/Users/Acer/battery_test_project/csv/channel_111_pulse_discharge")

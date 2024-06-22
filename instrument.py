@@ -268,4 +268,3 @@ class DAQ:
 rm = pyvisa.ResourceManager()
 print(rm.list_resources()) #列出可用資源
 print(rm) #輸出Visa庫在電腦的位置
-print("垃圾專題")
