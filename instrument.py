@@ -248,7 +248,7 @@ class DAQ:
         df_111['Current'] = df_111['Current'].astype(float).map("{:.6f}".format).astype(float)
         df_111['Current'] = df_111['Current'].apply(lambda x: abs(x) if x < 0 else x)
         # 將 'Voltage' 欄位的值除以 0.001 轉換為電流數值，存入 'Current'
-        df_111['Current'] = df_111['Current'] * 1000
+        df_111['Current'] = (df_111['Current'] * 1000).round(6)
         #df_111['Current'] = df_111['Current'].astype(float)/0.001
         df_101 = df_101[['Channel', 'Timestamp', 'Voltage', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second']]
         df_111 = df_111[['Channel', 'Timestamp', 'Current', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second']]
