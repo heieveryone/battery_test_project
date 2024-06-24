@@ -250,10 +250,10 @@ class DAQ:
         #total_time_elapsed = df_101['Timestamp'].iloc[-1] - df_101['Timestamp'].iloc[0]
         return df_101, df_111
     def real_time_get_channel_data(self):
-        self.name.write("DATA:LAST? 1") #讀取一筆記憶體資料
+        self.name.write("DATA:REMOVE? 1") #讀取一筆記憶體資料，並清除
         return self.name.read()
     def data_point(self):
-        self.name.write("DATA:POIN?") #回傳目前保存在掃描記憶體中的數據總數
+        self.name.write("DATA:POINTS?") #回傳目前保存在掃描記憶體中的數據總數
         return int(self.name.read())
         
 rm = pyvisa.ResourceManager()
