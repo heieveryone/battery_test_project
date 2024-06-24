@@ -38,15 +38,10 @@ df_111 = pd.DataFrame(columns=['Channel', 'Timestamp', 'Current', 'Year', 'Month
 if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':01050500FF00F6\r\n'):
     print(DAQ_970a.scan_start())
     PSU_output = PDS20_36A.output(1)
-    while 1:
-        time.sleep(0.5)
+    while DAQ_970a.data_point != 0:
         data = DAQ_970a.real_time_get_channel_data()
         Data = DAQ_970a.spilt_read_data(data)
         new_df_101, new_df_111 = DAQ_970a.get_channel_data(Data)
-        #voltage = new_df_101['Voltage']
-        #print(voltage, type(voltage))
-        #current = new_df_111['Current']
-        #print(new_df_101, type(new_df_101))
         df_101 = pd.concat([df_101, new_df_101], ignore_index=True)
         df_111 = pd.concat([df_111, new_df_111], ignore_index=True)
         if len(df_101) >= 5 and len(df_111) >= 5:
