@@ -39,27 +39,28 @@ if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':0105050
     print(DAQ_970a.scan_start())
     PSU_output = PDS20_36A.output(1)
     time.sleep(1)
-    while DAQ_970a.data_point() != 0:
+    while 1:
         print(DAQ_970a.data_point())
-        data = DAQ_970a.real_time_get_channel_data()
-        Data = DAQ_970a.spilt_read_data(data)
-        new_df_101, new_df_111 = DAQ_970a.get_channel_data(Data)
-        df_101 = pd.concat([df_101, new_df_101], ignore_index=True)
-        df_111 = pd.concat([df_111, new_df_111], ignore_index=True)
-        if len(df_101) >= 5 and len(df_111) >= 5:
-            voltage_average = df_101['Voltage'].rolling(window = 5).mean().round(4)
-            current_average = df_111['Current'].rolling(window = 5).mean().round(4)
-            # Ensure you are accessing the most recent values
-            recent_voltage_avg = voltage_average.iloc[-1]
-            recent_current_avg = current_average.iloc[-1]
-            print(recent_current_avg, recent_voltage_avg)
-            if (4.195 <= recent_voltage_avg <= 4.203) & (recent_current_avg <= 0.052):
-                DAQ_970a.scan_stop()
-                time.sleep(0.05)
-                print("PSU OFF")
-                PSU_output = PDS20_36A.output(0)
-                print("cut off voltage") 
-                break
+        if DAQ_970a.data_point() != 0:
+            data = DAQ_970a.real_time_get_channel_data()
+            Data = DAQ_970a.spilt_read_data(data)
+            new_df_101, new_df_111 = DAQ_970a.get_channel_data(Data)
+            df_101 = pd.concat([df_101, new_df_101], ignore_index=True)
+            df_111 = pd.concat([df_111, new_df_111], ignore_index=True)
+            if len(df_101) >= 5 and len(df_111) >= 5:
+                voltage_average = df_101['Voltage'].rolling(window = 5).mean().round(4)
+                current_average = df_111['Current'].rolling(window = 5).mean().round(4)
+                # Ensure you are accessing the most recent values
+                recent_voltage_avg = voltage_average.iloc[-1]
+                recent_current_avg = current_average.iloc[-1]
+                print(recent_current_avg, recent_voltage_avg)
+                if (4.195 <= recent_voltage_avg <= 4.203) & (recent_current_avg <= 0.052):
+                    DAQ_970a.scan_stop()
+                    time.sleep(0.05)
+                    print("PSU OFF")
+                    PSU_output = PDS20_36A.output(0)
+                    print("cut off voltage") 
+                    break
     if  DAQ_970a.data_point() == 0:
         print("No data")
 elif M1183_state != str(b':01050C9F00004F\r\n') or output_state != str(b':01050500FF00F6\r\n'):
