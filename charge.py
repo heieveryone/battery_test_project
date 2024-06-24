@@ -59,7 +59,8 @@ if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':0105050
                 PSU_output = PDS20_36A.output(0)
                 print("cut off voltage") 
                 break
-        
+    if  DAQ_970a.data_point() == 0:
+        print("No data")
 elif M1183_state != str(b':01050C9F00004F\r\n') or output_state != str(b':01050500FF00F6\r\n'):
     print("fail to turn on")
         

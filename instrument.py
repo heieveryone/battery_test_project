@@ -220,7 +220,6 @@ class DAQ:
         scan_data = data.split(",")
         for item in scan_data: 
             Data.append(item) #將每個資料填入串列內
-            #print(Data)
         return Data
     def get_channel_data(self, data):
         #print(data)
@@ -238,18 +237,13 @@ class DAQ:
         # 將時間數據轉換為datetime格式
         df_101['Timestamp'] = pd.to_datetime(df_101[['Year', 'Month', 'Day', 'Hour', 'Minute', 'Second']])
         df_111['Timestamp'] = pd.to_datetime(df_111[['Year', 'Month', 'Day', 'Hour', 'Minute', 'Second']])
-        # 計算總花費時間
-        #total_time_101 = (df_101['Timestamp'] - df_101['Timestamp'].iloc[0]).dt.total_seconds()
-        #total_time_111 = (df_111['Timestamp'] - df_111['Timestamp'].iloc[0]).dt.total_seconds()
         # 將電壓數據從科學記號轉換為浮點數，並保留小數點後4位
         df_101['Voltage'] = df_101['Voltage'].astype(float).map("{:.6f}".format).astype(float)
-        #df_111['Voltage'] = df_111['Voltage'].astype(float).map("{:.6f}".format).astype(float)
         # 將 'Voltage' 從科學記號轉換為浮點數
         df_111['Current'] = df_111['Current'].astype(float).map("{:.6f}".format).astype(float)
         df_111['Current'] = df_111['Current'].apply(lambda x: abs(x) if x < 0 else x)
         # 將 'Voltage' 欄位的值除以 0.001 轉換為電流數值，存入 'Current'
         df_111['Current'] = (df_111['Current'] * 1000).round(6)
-        #df_111['Current'] = df_111['Current'].astype(float)/0.001
         df_101 = df_101[['Channel', 'Timestamp', 'Voltage', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second']]
         df_111 = df_111[['Channel', 'Timestamp', 'Current', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second']]
         # 計算從第一個數據點到最後一個數據點的時間跨度
@@ -259,9 +253,8 @@ class DAQ:
         self.name.write(" DATA:LAST?") #讀取一筆記憶體資料
         return self.name.read()
     def data_point(self):
-        self.name.write("DATA:POINTS?") #回傳目前保存在掃描記憶體中的數據總數
-        points = int(self.name.read())
-        return points
+        self.name.write("DATA:POIN?") #回傳目前保存在掃描記憶體中的數據總數
+        return int(self.name.read())
         
 rm = pyvisa.ResourceManager()
 print(rm.list_resources()) #列出可用資源
