@@ -40,7 +40,7 @@ if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':0105050
     PSU_output = PDS20_36A.output(1)
     time.sleep(1)
     while 1:
-        print(DAQ_970a.data_point())
+        #print(DAQ_970a.data_point())
         if DAQ_970a.data_point() != 0:
             data = DAQ_970a.real_time_get_channel_data()
             Data = DAQ_970a.spilt_read_data(data)
