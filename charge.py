@@ -38,6 +38,7 @@ df_111 = pd.DataFrame(columns=['Channel', 'Timestamp', 'Current', 'Year', 'Month
 if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':01050500FF00F6\r\n'):
     print(DAQ_970a.scan_start())
     PSU_output = PDS20_36A.output(1)
+    time.sleep(1)
     while DAQ_970a.data_point() != 0:
         print(DAQ_970a.data_point())
         data = DAQ_970a.real_time_get_channel_data()
