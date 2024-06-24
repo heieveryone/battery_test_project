@@ -57,8 +57,8 @@ if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':0105050
                 if (4.195 <= recent_voltage_avg <= 4.203) & (recent_current_avg <= 0.052):
                     DAQ_970a.scan_stop()
                     time.sleep(0.05)
-                    print("PSU OFF")
                     PSU_output = PDS20_36A.output(0)
+                    print("PSU OFF")
                     print("cut off voltage") 
                     break
     if  DAQ_970a.data_point() == 0:

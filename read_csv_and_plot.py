@@ -32,7 +32,7 @@ def read_and_plot_csv(file_path):
     first_number = extract_first_number(file_name)
     file_type = get_file_type(charge_current_csv_path)
     if first_number is not None:
-        title = f'cycle {first_number} discharge data'
+        title = f'cycle {first_number} charge data'
     else:
         title = '充電數據'
     df = pd.read_csv(file_path)
@@ -72,7 +72,7 @@ charge_Current_latest_file = get_latest_csv_file(charge_current_csv_path)
 discharge_Current_latest_file = get_latest_csv_file(discharge_current_csv_path)
 discharge_PulseVoltage_latest_file = get_latest_csv_file(discharge_PulseVoltage_csv_path)
 discharge_PulseCurrent_latest_file = get_latest_csv_file(discharge_PulseCurrent_csv_path)
-print(f"Latest CSV file: {discharge_PulseVoltage_latest_file}")
+print(f"Latest CSV file: {charge_Voltage_latest_file}")
 
 # 讀取最新的 CSV 檔案並繪製數據
-read_and_plot_csv(discharge_PulseVoltage_latest_file)
+read_and_plot_csv(charge_Voltage_latest_file)
