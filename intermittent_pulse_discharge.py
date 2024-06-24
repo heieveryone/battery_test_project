@@ -13,10 +13,10 @@ Rigol_load.list_count(0)
 Rigol_load.list_step(1)
 Rigol_load.list_level(0, 10.4)
 Rigol_load.list_level(1, 0)
-Rigol_load.list_width(0, 10)
+Rigol_load.list_width(0, 20)
 Rigol_load.list_width(1, 300)
 Rigol_load.list_CC_slew(0, 0.1)
-Rigol_load.list_CC_slew(1, 0.001)
+Rigol_load.list_CC_slew(1, 0.1)
 time.sleep(1)
 
 DVP_12SE = instrument.DVP_PLC('COM4', '12SE')
@@ -56,7 +56,7 @@ if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':0105050
             recent_voltage_avg = voltage_average.iloc[-1]
             recent_current_avg = current_average.iloc[-1]
             print(recent_current_avg, recent_voltage_avg)
-            if recent_current_avg < 0.1 and 3.8 <= recent_voltage_avg < 3.9:
+            if recent_current_avg < 0.05 and 3.59 <= recent_voltage_avg < 3.601:
                 DAQ_970a.scan_stop()
                 time.sleep(0.05)
                 E_load_input = Rigol_load.input(0)
