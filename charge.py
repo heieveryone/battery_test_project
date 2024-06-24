@@ -38,7 +38,8 @@ df_111 = pd.DataFrame(columns=['Channel', 'Timestamp', 'Current', 'Year', 'Month
 if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':01050500FF00F6\r\n'):
     print(DAQ_970a.scan_start())
     PSU_output = PDS20_36A.output(1)
-    while DAQ_970a.data_point != 0:
+    while DAQ_970a.data_point() != 0:
+        print(DAQ_970a.data_point())
         data = DAQ_970a.real_time_get_channel_data()
         Data = DAQ_970a.spilt_read_data(data)
         new_df_101, new_df_111 = DAQ_970a.get_channel_data(Data)
@@ -95,3 +96,4 @@ instrument.save_dataframe_to_csv_with_incremented_filename(df_111, "C:/Users/Ace
 #instrument.save_dataframe_to_csv_with_incremented_filename(df_resistance, "C:/Users/Acer/battery_test_project/csv/charge_resistance")
 #save_dataframe_to_csv_with_incremented_filename(PLC_voltage, "C:/Users/zx511/hello/csv/PLC_data")
 
+instrument.rm.close()
