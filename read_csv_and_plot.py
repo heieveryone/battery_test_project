@@ -61,6 +61,8 @@ def read_and_plot_csv(file_path):
 # 指定你的目錄
 charge_voltage_csv_path = "C:/Users/Acer/battery_test_project/csv/channel_101_charge"
 discharge_voltage_csv_path = "C:/Users/Acer/battery_test_project/csv/channel_101_discharge"
+charge_temperature_csv_path = "C:/Users/Acer/battery_test_project/csv/channel_102_charge"
+discharge_temperature_csv_path = "C:/Users/Acer/battery_test_project/csv/channel_102_discharge"
 charge_current_csv_path = "C:/Users/Acer/battery_test_project/csv/channel_111_charge"
 discharge_current_csv_path = "C:/Users/Acer/battery_test_project/csv/channel_111_discharge"
 discharge_PulseVoltage_csv_path = "C:/Users/Acer/battery_test_project/csv/channel_101_pulse_discharge"
@@ -68,6 +70,8 @@ discharge_PulseCurrent_csv_path = "C:/Users/Acer/battery_test_project/csv/channe
 # 獲取最新的 CSV 檔案
 charge_Voltage_latest_file = get_latest_csv_file(charge_voltage_csv_path)
 discharge_Voltage_latest_file = get_latest_csv_file(discharge_voltage_csv_path)
+charge_Temperature_latest_file = get_latest_csv_file(charge_voltage_csv_path)
+discharge_Temperature_latest_file = get_latest_csv_file(discharge_voltage_csv_path)
 charge_Current_latest_file = get_latest_csv_file(charge_current_csv_path)
 discharge_Current_latest_file = get_latest_csv_file(discharge_current_csv_path)
 discharge_PulseVoltage_latest_file = get_latest_csv_file(discharge_PulseVoltage_csv_path)
