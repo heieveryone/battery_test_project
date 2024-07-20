@@ -21,4 +21,8 @@ time.sleep(0.1)
 PSU_output = PDS20_36A.output(0)
 time.sleep(1)
 output_state = DVP_12SE.Y0_output(b':010505000000F5\r\n')
-print(DAQ_970a.read_ALLscan_memory())
+path = "data.txt"
+f = open(path, 'w')
+print(DAQ_970a.read_ALLscan_memory(), file = f)
+
+
