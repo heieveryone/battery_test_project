@@ -38,7 +38,7 @@ if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':0105050
     while 1:
         if DAQ_970a.data_point() != 0:
             data = DAQ_970a.real_time_get_channel_data()
-            Data = DAQ_970a.spilt_read_data(data)
+            Data = DAQ_970a.split_read_data(data)
             new_df_101, new_df_102, new_df_111 = DAQ_970a.get_channel_data(Data)
             df_101 = pd.concat([df_101, new_df_101], ignore_index=True)
             df_102 = pd.concat([df_102, new_df_102], ignore_index=True)
@@ -58,6 +58,8 @@ if M1183_state == str(b':01050C9F00004F\r\n') and output_state == str(b':0105050
                     E_load_input = Rigol_load.input(0)
                     print("cut off voltage")
                     break
+    if  DAQ_970a.data_point() == 0:
+        print("No data")
 elif M1183_state != str(b':01050C9F00004F\r\n') or output_state != str(b':010505000000F5\r\n'):
     print("fail to turn on")
 

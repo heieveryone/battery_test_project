@@ -32,7 +32,7 @@ def read_and_plot_csv(file_path):
     first_number = extract_first_number(file_name)
     file_type = get_file_type(charge_current_csv_path)
     if first_number is not None:
-        title = f'cycle {first_number} charge data'
+        title = f'cycle {first_number} discharge data'
     else:
         title = '充電數據'
     df = pd.read_csv(file_path)
@@ -44,10 +44,10 @@ def read_and_plot_csv(file_path):
     total_time_elapsed = df['Timestamp'].iloc[-1] - df['Timestamp'].iloc[0]
     df['Total Time'] = (df['Timestamp'] - df['Timestamp'].iloc[0]).dt.total_seconds() / 3600
     plt.figure(figsize=(10, 6))
-    plt.plot(df['Total Time'], df['Voltage'], label='Voltage')
+    plt.plot(df['Total Time'], df['Temperature'], label='Temperature')
     
     plt.xlabel('Total Time (hr)')
-    plt.ylabel('Voltage (V)')
+    plt.ylabel('Temperature (℃)')
     
     # 使用檔案名中的數字作為標題
 
@@ -70,13 +70,17 @@ discharge_PulseCurrent_csv_path = "C:/Users/Acer/battery_test_project/csv/channe
 # 獲取最新的 CSV 檔案
 charge_Voltage_latest_file = get_latest_csv_file(charge_voltage_csv_path)
 discharge_Voltage_latest_file = get_latest_csv_file(discharge_voltage_csv_path)
-charge_Temperature_latest_file = get_latest_csv_file(charge_voltage_csv_path)
-discharge_Temperature_latest_file = get_latest_csv_file(discharge_voltage_csv_path)
+charge_Temperature_latest_file = get_latest_csv_file(charge_temperature_csv_path)
+discharge_Temperature_latest_file = get_latest_csv_file(discharge_temperature_csv_path)
 charge_Current_latest_file = get_latest_csv_file(charge_current_csv_path)
 discharge_Current_latest_file = get_latest_csv_file(discharge_current_csv_path)
 discharge_PulseVoltage_latest_file = get_latest_csv_file(discharge_PulseVoltage_csv_path)
 discharge_PulseCurrent_latest_file = get_latest_csv_file(discharge_PulseCurrent_csv_path)
-print(f"Latest CSV file: {charge_Voltage_latest_file}")
+print(f"Latest CSV file: {discharge_Temperature_latest_file}")
 
 # 讀取最新的 CSV 檔案並繪製數據
-read_and_plot_csv(charge_Voltage_latest_file)
+read_and_plot_csv(discharge_Temperature_latest_file)
+
+#Temperature (℃)
+#Voltage (V)
+#Current (A)
