@@ -215,7 +215,7 @@ class DAQ:
         self.name.write("FETC?")
         data = self.name.read()
         return data
-    def spilt_read_data(self, data):
+    def split_read_data(self, data):
         Data = []
         scan_data = data.split(",")
         for item in scan_data: 
@@ -235,7 +235,7 @@ class DAQ:
         df_111 = pd.DataFrame(channel_111, columns=['Current', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second', 'Channel'])
         # 將秒數轉換為整數
         df_101['Second'] = df_101['Second'].astype(float).astype(int)
-        df_102['Second'] = df_101['Second'].astype(float).astype(int)
+        df_102['Second'] = df_102['Second'].astype(float).astype(int)
         df_111['Second'] = df_111['Second'].astype(float).astype(int)
         # 將時間數據轉換為datetime格式
         df_101['Timestamp'] = pd.to_datetime(df_101[['Year', 'Month', 'Day', 'Hour', 'Minute', 'Second']])
@@ -244,7 +244,7 @@ class DAQ:
         # 將電壓數據從科學記號轉換為浮點數，並保留小數點後4位
         df_101['Voltage'] = df_101['Voltage'].astype(float).map("{:.6f}".format).astype(float)
         # 將溫度數據從科學記號轉換為浮點數，並保留小數點後4位
-        df_102['Temperature'] = df_102['Temperature'].astype(float).map("{:.6f}".format).astype(float)
+        df_102['Temperature'] = df_102['Temperature'].astype(float).map("{:.4f}".format).astype(float)
         # 將111 'Voltage' 從科學記號轉換為浮點數
         df_111['Current'] = df_111['Current'].astype(float).map("{:.6f}".format).astype(float)
         df_111['Current'] = df_111['Current'].apply(lambda x: abs(x) if x < 0 else x)
