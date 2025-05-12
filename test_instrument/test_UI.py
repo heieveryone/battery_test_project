@@ -70,13 +70,26 @@ discharge_cycle_count = 0
 latest_voltage = 0.0
 latest_current = 0.0
 latest_temperature = 0.0
-daq_active = False
+
+
+daemon_flags = {
+    'psu': False,
+    'load': False,
+    'lcr': False,
+    'daq': False,
+    'm3': False,
+    'm5': False
+}
+# 建立一個全域變數存放最新 EIS 資料
+latest_eis = []
+latest_measure_freq = 0
 # --- 其他函式（PLC_safe, cycle_thread, charge_discharge_mode, DAQ, LCR_EIS_sweep）---
 #    這裡省略，保持與原始程式完全相同，只是把原先的 input()/print("啟動模式") 相關片段拿掉，
 #    並將所有對 global mode 的讀寫都改為透過下面的 mode 變數存取。
 
 mode = None
 def PLC_safe():
+    global daemon_flags
     M2_ON = DVP_12SE.M2_ON(b':01050802FF00F1\r\n')
     M2_state = DVP_12SE.M2_state_read(b':010108020001F3\r\n')
     if M2_state == target_M2_ON:
@@ -88,8 +101,10 @@ def PLC_safe():
             #print(M3_state, M5_state)
             if M3_state == str(b':01010103FA\r\n'):
                 PSU_output = PDS20_36A.output(0)
+                Rigol_load.input(0)
                 DAQ_970a.scan_stop()
                 print("discharge and under voltage")
+                daemon_flags['m3'] = True
                 M3_M5_trigger.put("M3")
                 stop_event.set()
                 #M2_OFF = DVP_12SE.M2_ON(b':010508020000F0\r\n')
@@ -100,8 +115,10 @@ def PLC_safe():
             
             if M5_state == str(b':01010105F8\r\n'):
                 PSU_output = PDS20_36A.output(0)
+                Rigol_load.input(0)
                 DAQ_970a.scan_stop()
                 print("charge and over voltage")
+                daemon_flags['m5'] = True
                 M3_M5_trigger.put("M5")
                 stop_event.set()
                 #M2_OFF = DVP_12SE.M2_ON(b':010508020000F0\r\n')
@@ -159,7 +176,7 @@ def cycle_thread():
         #DAQ_ON_event.set()
         
 def charge_discharge_mode():
-    global mode
+    global mode, daemon_flags
     while not shutdown.is_set():
         with mode_lock:
             m = mode
@@ -174,13 +191,15 @@ def charge_discharge_mode():
             DAQ_ON_event.set()
             time.sleep(0.05)
             PSU_output = PDS20_36A.output(1)
+            daemon_flags['psu'] = True
             print("Charge: PSU ON, waiting for cutoff")
             charge_OR_discharge_finish_event.wait()
             print("Charge: cutoff detected, shutting down PSU")
             # 5) 關 PSU、開串放電繼電器 M2
-            #PDS20_36A.output(0)
+            PDS20_36A.output(0)
             charge_OR_discharge_finish_event.clear()
             charge_or_discharge_flag.put("charge")
+            daemon_flags['psu'] = False
             # 等待 cycle_thread 把 mode 切成 "discharge"
             old = m
             while True:
@@ -200,13 +219,15 @@ def charge_discharge_mode():
             DAQ_ON_event.set()
             time.sleep(0.05)
             E_load_input = Rigol_load.input(1)
+            daemon_flags['load'] = True
             print("DIscharge: E_load ON, waiting for cutoff")
             charge_OR_discharge_finish_event.wait()
             print("Disharge: cutoff detected, shutting down E_load")
             # 5) 關 PSU、開串放電繼電器 M2
-            #E_load_input = Rigol_load.input(0)
+            E_load_input = Rigol_load.input(0)
             charge_OR_discharge_finish_event.clear()
             charge_or_discharge_flag.put("discharge")
+            daemon_flags['laod'] = True
             old = m
             while True:
                 with mode_lock:
@@ -220,14 +241,14 @@ def charge_discharge_mode():
 def DAQ():
     global df_101, df_102, df_111, mode
     global charge_cycle_count, discharge_cycle_count, discharge_capacities, capacity_change, curr
-    global latest_voltage, latest_current, latest_temperature, daq_active
+    global latest_voltage, latest_current, latest_temperature, daemon_flags
     while not shutdown.is_set():
         DAQ_ON_event.wait()
         DAQ_ON_event.clear()
         if shutdown.is_set():
             break
         print("DAQ: start scanning")
-        daq_active = True
+        daemon_flags['daq'] = True
         DAQ_970a.scan_start()
         time.sleep(0.05) # 等待掃描開始
         while not shutdown.is_set():
@@ -312,7 +333,7 @@ def DAQ():
         except Exception as e:
             print("掃描停止出錯:", e)
         finally:
-            daq_active = False
+            daemon_flags['daq'] = False
         print(f">>> DAQ 檢測到 {m} 截止，已關 scanning")
         for df, path in [
             (df_101, f"channel_101_{m}"),
@@ -339,7 +360,7 @@ def LCR_EIS_sweep(lcr, start_freq, stop_freq, points):
     points: 掃描點數
     csv_prefix: 存檔檔名前綴
     """
-    global mode
+    global mode, daemon_flags, latest_eis, latest_measure_freq
     with mode_lock:
             m = mode
             if m == "charge":
@@ -347,6 +368,7 @@ def LCR_EIS_sweep(lcr, start_freq, stop_freq, points):
             elif m == "discharge":
                 cycle = discharge_cycle_count
     print("EIS 開始量測")
+    daemon_flags['lcr'] = True
     freqs = LCR_ZM2371.freq_range(start_freq, stop_freq, points)
     results = []
     for freq in freqs:
@@ -356,6 +378,8 @@ def LCR_EIS_sweep(lcr, start_freq, stop_freq, points):
         end_time = time.time()
         duration = end_time - start_time
         results.append((LCR_response_freq, result))
+        latest_eis = result
+        latest_measure_freq = LCR_response_freq
         print(duration, result)
     # 解析成 DataFrame
     data = []
@@ -365,6 +389,7 @@ def LCR_EIS_sweep(lcr, start_freq, stop_freq, points):
         real = float(parts[1])
         imag = float(parts[2])
         data.append((f, real, imag))
+    daemon_flags['lcr'] = False
     df = pd.DataFrame(data, columns=["Frequency (Hz)", "Zreal", "Zimag"])
     base_path = r"C:\Users\zx511\battery_test_project\csv\EIS"
     os.makedirs(base_path, exist_ok=True)  # 如果資料夾不存在則自動建立
@@ -373,6 +398,27 @@ def LCR_EIS_sweep(lcr, start_freq, stop_freq, points):
     print(f"EIS 資料已儲存至 {filename}")
 # 在此假設您已將原本各個工作執行緒的函式（PLC_safe、cycle_thread、charge_discharge_mode、DAQ、LCR_EIS_sweep）
 # 完整複製進來並且不動。下面只示範 UI 相關與程式啟動整合。
+def cleanup_instruments():
+    try:
+        PDS20_36A.output(0)
+    except:
+        pass
+    try:
+        Rigol_load.input(0)
+    except:
+        pass
+    try:
+        DAQ_970a.scan_stop()
+    except:
+        pass
+    try:
+        LCR_ZM2371.stop_measure()
+        LCR_ZM2371.close()
+    except:
+        pass
+def shutdown_watcher():
+    shutdown.wait()     # block until shutdown.set() is called
+    cleanup_instruments()
 
 # --- Tkinter UI 部分 ---
 def on_mode_change():
@@ -390,6 +436,7 @@ def start_process():
     Thread(target=cycle_thread, daemon=True).start()
     Thread(target=charge_discharge_mode, daemon=True).start()
     Thread(target=DAQ, daemon=True).start()
+    Thread(target=shutdown_watcher, daemon=True).start()
     update_status()     # 啟動 UI 週期更新
 
 def emergency_stop():
@@ -415,9 +462,20 @@ def update_status():
     vol_lbl.config(text=f"{latest_voltage:.3f} V")
     cur_lbl.config(text=f"{latest_current:.3f} A")
     temp_lbl.config(text=f"{latest_temperature:.2f} °C")
+    # 顯示最新單點 EIS 資料
+    if latest_eis:
+        eis_text.delete('1.0', tk.END)
+        eis_text.insert(tk.END, f"Freq: {latest_measure_freq:.3e} Hz\n")
+        # 假設 latest_eis = (f, real, imag)
+        r, i = latest_eis
+        eis_text.insert(tk.END, f"Zreal: {r:.3f}, Zimag: {i:.3f}\n")
 
-    # 5) DAQ 狀態指示燈
-    daq_indicator.config(bg="green" if daq_active else "gray")
+    psu_indicator.config( bg='green' if daemon_flags['psu'] else 'gray' )
+    load_indicator.config(bg='green' if daemon_flags['load'] else 'gray')
+    lcr_indicator.config( bg='green' if daemon_flags['lcr'] else 'gray')
+    daq_indicator.config( bg='green' if daemon_flags['daq'] else 'gray')
+    m3_indicator.config(  bg='red'   if daemon_flags['m3']  else 'gray')
+    m5_indicator.config(  bg='red'   if daemon_flags['m5']  else 'gray')
 
     # 每 200ms 再呼叫自己，只要還沒 shutdown
     if not shutdown.is_set():
@@ -469,8 +527,22 @@ temp_lbl = tk.Label(root, text="0.00 °C")
 temp_lbl.grid(row=7, column=1, sticky='w')
 
 # DAQ 狀態指示燈
-daq_indicator = tk.Label(root, text="DAQ", width=8, bg="gray", fg="white", font=('Arial', 10, 'bold'))
-daq_indicator.grid(row=8, column=0, columnspan=2, pady=5)
+psu_indicator = tk.Label(root, text="PSU", width=8)
+psu_indicator.grid(row=9, column=0)
+load_indicator = tk.Label(root, text="LOAD", width=8)
+load_indicator.grid(row=9, column=1)
+lcr_indicator = tk.Label(root, text="LCR", width=8)
+lcr_indicator.grid(row=9, column=2)
+daq_indicator  = tk.Label(root, text="DAQ",  width=8)
+daq_indicator.grid(row=9, column=3)
+m3_indicator = tk.Label(root, text="M3", width=8)
+m3_indicator.grid(row=10, column=0)
+m5_indicator = tk.Label(root, text="M5", width=8)
+m5_indicator.grid(row=10, column=1)
+
+# EIS 數據顯示區
+eis_text = tk.Text(root, height=10, width=50)
+eis_text.grid(row=11, column=0, columnspan=4)
 
 # 視窗關閉時也觸發 shutdown
 def on_closing():
