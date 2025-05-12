@@ -7,7 +7,7 @@ LCR_ZM2371.timeout()
 LCR_ZM2371.measure_config("OFF", "BUS", "ON", "LONG", "OFF")
 LCR_ZM2371.measure_parameter("REAL", "IMAG")
 LCR_ZM2371.measure_source("VOLT", 0.01, 0)
-freqs = LCR_ZM2371.freq_range(-2, 5, 10)
+freqs = LCR_ZM2371.freq_range(-3, 5, 10)
 results = []
 print("start measure")
 
