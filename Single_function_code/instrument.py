@@ -295,17 +295,19 @@ class LCR:
         self.name.write("*RST")
     def timeout(self):
         self.name.timeout = 3600000
-    def measure_config(self,CONT_trig, trig_sour, CONCurrent, speed, average, aver_count = 1):
-        self.name.write(f":INIT:CONT {CONT_trig}; :TRIG:SOUR {trig_sour}; *WAI; :SENSe:FUNCtion:CONCurrent {CONCurrent}; :APER {speed}; *WAI; :AVER {average}; :AVER:COUN {aver_count}")
-        """
-        CONT_trig:連續觸發(ON / OFF)
-        trig_sour:觸發源(INTernal|MANual|EXTernal|BUS)
-        CONCurrent:多參數(ON / OFF)
-        speed:量測速度(RAP|SHOR|MED|LONG|VSLO)
-        average:平均(ON / OFF)
-        aver_count:平均筆數(預設1筆)
-        *WAI:確保前面指令執行完
-        """
+    def measure_config(self,CONT_trig, trig_sour, CONCurrent, speed, average, aver_count = 1, measure_range = 1):
+            self.name.write(f":INIT:CONT {CONT_trig}; :TRIG:SOUR {trig_sour}; *WAI; :SENSe:FUNCtion:CONCurrent {CONCurrent}; :APER {speed}; *WAI; :AVER {average}; :AVER:COUN {aver_count}; :FRES:RANG:AUTO {measure_range}")
+            """
+            CONT_trig:連續觸發(ON / OFF)
+            trig_sour:觸發源(INTernal|MANual|EXTernal|BUS)
+            CONCurrent:多參數(ON / OFF)
+            speed:量測速度(RAP|SHOR|MED|LONG|VSLO)
+            average:平均(ON / OFF)
+            aver_count:平均筆數(預設1筆)
+            *WAI:確保前面指令執行完
+            measure_range:量測範圍(ON / OFF)
+
+            """
     def measure_parameter(self, CALC1, CALC2):
         self.name.write(f":CALC1:FORM {CALC1}; :CALC2:FORM {CALC2}")
         """
@@ -341,6 +343,8 @@ class LCR:
         self.name.write("*TRG")
         result = self.name.query(":FETCh?")
         return result
+    def stop_measure(self):
+        self.name.write(":ABOR")
     def close(self):
         self.name.close()
 rm = pyvisa.ResourceManager()
