@@ -55,10 +55,10 @@ df_102 = pd.DataFrame(columns=['Channel', 'Timestamp', 'Temperature', 'Year', 'M
 df_111 = pd.DataFrame(columns=['Channel', 'Timestamp', 'Current', 'Year', 'Month', 'Day', 'Hour', 'Minute', 'Second'])
 discharge_capacities = [] # 用來存放放電容量的列表
 # —— 充電停止門檻常數 —— #
-charge_VOLtage_LOW, charge_VOLtage_HIGH = 4.198, 4.21
+charge_VOLtage_LOW, charge_VOLtage_HIGH = 4.15, 4.16
 charge_CURRENT_THRESH = 0.052
 # —— 放電停止門檻常數 —— #
-discharge_voltage_LOW, discharge_voltage_HIGH = 3.29, 3.3
+discharge_voltage_LOW, discharge_voltage_HIGH = 3.9, 3.91
 # —— 充放電循環計數器 —— #
 charge_cycle_count = 0
 discharge_cycle_count = 0
@@ -84,7 +84,7 @@ def PLC_safe():
             if M3_state == str(b':01010103FA\r\n'):
                 PSU_output = PDS20_36A.output(0)
                 DAQ_970a.scan_stop()
-                print("charge and under voltage")
+                print("discharge and under voltage")
                 M3_M5_trigger.put("M3")
                 stop_event.set()
                 #M2_OFF = DVP_12SE.M2_ON(b':010508020000F0\r\n')
@@ -140,7 +140,7 @@ def cycle_thread():
         )
         print("== EIS 完成，休息 10min ==")
         time.sleep(600)
-        if charge_cycle_count >= 3 and discharge_cycle_count >= 3:
+        if charge_cycle_count >= 1 and discharge_cycle_count >= 1:
             print("⚠️ 充電與放電各 1 次完成，系統停止。")
             shutdown.set()
             return
@@ -260,7 +260,7 @@ def DAQ():
                                 time.sleep(0.1)
                                 DAQ_970a.scan_stop()
                                 charge_cycle_count += 1
-                                if charge_cycle_count >= 3 and discharge_cycle_count >= 3:
+                                if charge_cycle_count >= 1 and discharge_cycle_count >= 1:
                                     print("⚠️ 充電與放電各 3 次完成，系統準備停止。")
                                 break
                             else:
@@ -293,7 +293,7 @@ def DAQ():
                                         eis_shutdown_flag.set()
                                         break
                                 discharge_cycle_count += 1
-                                if charge_cycle_count >= 3 and discharge_cycle_count >= 3:
+                                if charge_cycle_count >= 1 and discharge_cycle_count >= 1:
                                     print("⚠️ 充電與放電各 3 次完成，系統準備停止。")
                                 break
         try:
@@ -369,9 +369,6 @@ if __name__ == "__main__":
     # 啟動 DAQ 執行緒
     threading.Thread(target=DAQ, daemon=True).start()
     
-
-    
-
     # 主執行緒只要等 Ctrl-C 設定 shutdown
     try:
         while not shutdown.is_set():
